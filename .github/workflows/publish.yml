@@ -1,0 +1,61 @@
+name: Publish Android CI Image
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'Makefile'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      jdk_version:
+        description: 'JDK Version'
+        required: true
+        default: '17'
+      android_api:
+        description: 'Android API Level'
+        required: true
+        default: '36'
+      build_tools:
+        description: 'Build Tools Version'
+        required: true
+        default: '36.1.0'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login
+        if: github.event_name != 'pull_request'
+        run: make login
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push
+        run: |
+          JDK=${{ github.event.inputs.jdk_version || '17' }}
+          API=${{ github.event.inputs.android_api || '36' }}
+          TOOLS=${{ github.event.inputs.build_tools || '36.1.0' }}
+          
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "PR Detected: Running build test only..."
+            docker buildx build --platform linux/amd64,linux/arm64 \
+              -f src/jdk$JDK.Dockerfile \
+              --build-arg ANDROID_API=$API \
+              --build-arg BUILD_TOOLS=$TOOLS .
+          else
+            echo "Production Build: Building and pushing to GHCR..."
+            make build-multi JDK_VERSION=$JDK ANDROID_API=$API BUILD_TOOLS=$TOOLS
+          fi
