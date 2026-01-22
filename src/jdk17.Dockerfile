@@ -1,6 +1,6 @@
 FROM eclipse-temurin:17-jdk
 
-ENV ANDROID_SDK_TOOLS="13114758" \
+ENV ANDROID_SDK_TOOLS="14742923" \
     GRADLE_VERSION="9.3.0" \
     ANDROID_HOME="/opt/android-sdk" \
     GRADLE_HOME="/opt/gradle"
