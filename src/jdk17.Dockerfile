@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk
+FROM eclipse-temurin:17-jdk-jammy
 
 ENV ANDROID_SDK_TOOLS="14742923" \
     GRADLE_VERSION="9.3.0" \
